@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "708867069970",
+    "project_id": "locationcomparasion",
+    "storage_bucket": "locationcomparasion.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708867069970:android:8799381fed2b42c218a0cb",
+        "android_client_info": {
+          "package_name": "com.example.sample_location_comparision"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEhghDa7dm1QXJkjGuIIcrmNA2QGLeJQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
