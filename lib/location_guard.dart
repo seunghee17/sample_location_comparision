@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, kIsWeb;
@@ -14,6 +13,7 @@ class GeoCircle {
   final double latitude;
   final double longitude;
   final double radiusMeters;
+
   const GeoCircle({required this.latitude, required this.longitude, required this.radiusMeters});
 }
 
@@ -23,7 +23,8 @@ enum GuardDecision { allow, rejectNeedFreshSample, rejectPolicy, rejectSpoofed }
 /// 정확도·신선도 기준, 워밍업 샘플/타임아웃 등 튜닝 포인트
 // 워밍업 수집: getCurrentPosition으로 한방에 수집되길 바라는 것이 아닌 아주 짧은 시간동안 getPositionStream
 
-class LocationPolicy { // -- 정책임 (설정값)
+class LocationPolicy {
+  // -- 정책임 (설정값)
   // 허용 기준 (조정 가능)
   final double targetAccuracyMeters; // 수평 정확도 기준 (예: 25m)
   final Duration maxAge; // 위치 timestamp 신선도 (예: 5s)
@@ -60,42 +61,43 @@ class LocationPolicy { // -- 정책임 (설정값)
     Duration? timeLimitForCurrent,
     bool? useLastKnownAsLastResort,
     double? jitterRejectMultiplier,
-  }) => LocationPolicy(
-    targetAccuracyMeters: targetAccuracyMeters ?? this.targetAccuracyMeters,
-    maxAge: maxAge ?? this.maxAge,
-    maxSpeedAccuracy: maxSpeedAccuracy ?? this.maxSpeedAccuracy,
-    rejectMock: rejectMock ?? this.rejectMock,
-    minGoodSamples: minGoodSamples ?? this.minGoodSamples,
-    maxWarmupSamples: maxWarmupSamples ?? this.maxWarmupSamples,
-    warmupTimeout: warmupTimeout ?? this.warmupTimeout,
-    timeLimitForCurrent: timeLimitForCurrent ?? this.timeLimitForCurrent,
-    useLastKnownAsLastResort: useLastKnownAsLastResort ?? this.useLastKnownAsLastResort,
-    jitterRejectMultiplier: jitterRejectMultiplier ?? this.jitterRejectMultiplier,
-  );
+  }) =>
+      LocationPolicy(
+        targetAccuracyMeters: targetAccuracyMeters ?? this.targetAccuracyMeters,
+        maxAge: maxAge ?? this.maxAge,
+        maxSpeedAccuracy: maxSpeedAccuracy ?? this.maxSpeedAccuracy,
+        rejectMock: rejectMock ?? this.rejectMock,
+        minGoodSamples: minGoodSamples ?? this.minGoodSamples,
+        maxWarmupSamples: maxWarmupSamples ?? this.maxWarmupSamples,
+        warmupTimeout: warmupTimeout ?? this.warmupTimeout,
+        timeLimitForCurrent: timeLimitForCurrent ?? this.timeLimitForCurrent,
+        useLastKnownAsLastResort: useLastKnownAsLastResort ?? this.useLastKnownAsLastResort,
+        jitterRejectMultiplier: jitterRejectMultiplier ?? this.jitterRejectMultiplier,
+      );
 
   // 문서 열람 시 기본 정책 (실내/사무실 기준) 비교적 엄격
   static LocationPolicy docReadingDefault() => const LocationPolicy(
-    targetAccuracyMeters: 25,
-    maxAge: Duration(seconds: 5),
-    maxSpeedAccuracy: 2.0,
-    rejectMock: true,
-    minGoodSamples: 1,
-    maxWarmupSamples: 8,
-    warmupTimeout: Duration(seconds: 10),
-    timeLimitForCurrent: Duration(seconds: 5),
-    useLastKnownAsLastResort: false,
-    jitterRejectMultiplier: 2.5,
-  );
+        targetAccuracyMeters: 25,
+        maxAge: Duration(seconds: 5),
+        maxSpeedAccuracy: 2.0,
+        rejectMock: true,
+        minGoodSamples: 1,
+        maxWarmupSamples: 8,
+        warmupTimeout: Duration(seconds: 10),
+        timeLimitForCurrent: Duration(seconds: 5),
+        useLastKnownAsLastResort: false,
+        jitterRejectMultiplier: 2.5,
+      );
 
   // 야외/대형 반경
   static LocationPolicy outdoorLoose() => const LocationPolicy(
-    targetAccuracyMeters: 50,
-    maxAge: Duration(seconds: 8),
-    maxSpeedAccuracy: 3.0,
-    minGoodSamples: 1,
-    maxWarmupSamples: 6,
-    warmupTimeout: Duration(seconds: 8),
-  );
+        targetAccuracyMeters: 50,
+        maxAge: Duration(seconds: 8),
+        maxSpeedAccuracy: 3.0,
+        minGoodSamples: 1,
+        maxWarmupSamples: 6,
+        warmupTimeout: Duration(seconds: 8),
+      );
 }
 
 class EvaluatedPosition {
@@ -109,6 +111,7 @@ class EvaluatedPosition {
 class GuardResult {
   final GuardDecision decision;
   final EvaluatedPosition? evaluated;
+
   const GuardResult(this.decision, {this.evaluated});
 }
 
@@ -127,26 +130,28 @@ class LocationValidator {
     final age = p.timestamp == null ? const Duration(days: 9999) : now.difference(p.timestamp!);
 
     final acc = (p.accuracy.isFinite && p.accuracy > 0) ? p.accuracy : double.infinity;
-    final spdAcc = (p.speedAccuracy.isFinite && p.speedAccuracy >= 0) ? p.speedAccuracy : double.nan;
+    final spdAcc =
+        (p.speedAccuracy.isFinite && p.speedAccuracy >= 0) ? p.speedAccuracy : double.nan;
 
     final ageScore = _expDecay(age, policy.maxAge);
     final accScore = _clamp01(1.0 - (acc / policy.targetAccuracyMeters));
     final spdScore = spdAcc.isNaN ? 1.0 : _clamp01(1.0 - (spdAcc / policy.maxSpeedAccuracy));
 
-    final score = math.pow(ageScore * accScore * spdScore, 1 / 1).toDouble(); // 기하평균 대신 단순 곱
+    final score = (ageScore * accScore * spdScore).toDouble(); // 기하평균 대신 단순 곱
 
     // 등급 판정
     final conf = (acc <= policy.targetAccuracyMeters && age <= policy.maxAge)
         ? LocationConfidence.good
         : (acc <= policy.targetAccuracyMeters * 1.5 && age <= policy.maxAge * 2)
-        ? LocationConfidence.borderline
-        : LocationConfidence.bad;
+            ? LocationConfidence.borderline
+            : LocationConfidence.bad;
 
     return EvaluatedPosition(
       p,
       conf,
       _clamp01(score),
-      note: 'acc=${acc.toStringAsFixed(1)}m, age=${age.inMilliseconds}ms, spdAcc=${spdAcc.isNaN ? 'n/a' : spdAcc.toStringAsFixed(2)}',
+      note:
+          'acc=${acc.toStringAsFixed(1)}m, age=${age.inMilliseconds}ms, spdAcc=${spdAcc.isNaN ? 'n/a' : spdAcc.toStringAsFixed(2)}',
     );
   }
 
@@ -164,7 +169,8 @@ class LocationValidator {
 // -----------------------------
 
 class ReliableLocationAcquirer {
-  ReliableLocationAcquirer({LocationPolicy? policy}) : policy = policy ?? LocationPolicy.docReadingDefault();
+  ReliableLocationAcquirer({LocationPolicy? policy})
+      : policy = policy ?? LocationPolicy.docReadingDefault();
 
   final LocationPolicy policy;
   final LocationValidator _validator = LocationValidator();
@@ -200,7 +206,8 @@ class ReliableLocationAcquirer {
         intervalDuration: const Duration(seconds: 1),
         // forceLocationManager: false, // 기본(Fused)
       );
-    } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.bestForNavigation,
         distanceFilter: 0,
@@ -209,7 +216,8 @@ class ReliableLocationAcquirer {
         showBackgroundLocationIndicator: false,
       );
     } else {
-      return const LocationSettings(accuracy: LocationAccuracy.bestForNavigation, distanceFilter: 0);
+      return const LocationSettings(
+          accuracy: LocationAccuracy.bestForNavigation, distanceFilter: 0);
     }
   }
 
@@ -223,7 +231,8 @@ class ReliableLocationAcquirer {
     // 1) 즉시 측정 시도
     Position? first;
     try {
-      first = await Geolocator.getCurrentPosition(locationSettings: settings).timeout(policy.timeLimitForCurrent);
+      first = await Geolocator.getCurrentPosition(locationSettings: settings)
+          .timeout(policy.timeLimitForCurrent);
     } catch (_) {}
 
     if (first != null) {
@@ -245,7 +254,9 @@ class ReliableLocationAcquirer {
     while (sw.elapsed < policy.warmupTimeout && samples.length < policy.maxWarmupSamples) {
       await Future.delayed(const Duration(milliseconds: 400));
       final best = _pickBest(samples);
-      if (best != null && best.confidence == LocationConfidence.good && samples.length >= policy.minGoodSamples) {
+      if (best != null &&
+          best.confidence == LocationConfidence.good &&
+          samples.length >= policy.minGoodSamples) {
         await sub.cancel();
         return best;
       }
@@ -272,8 +283,7 @@ class ReliableLocationAcquirer {
     if (samples.isEmpty) return null;
 
     // 1) 최신 순으로 정렬 후, outlier 제거 (이전 샘플 대비 과도한 점프)
-    final sorted = [...samples]..sort((a, b) => (b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0))
-        .compareTo(a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)));
+    final sorted = [...samples]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     final filtered = <Position>[];
     for (final p in sorted) {
@@ -282,8 +292,11 @@ class ReliableLocationAcquirer {
         continue;
       }
       final prev = filtered.last;
-      final dist = Geolocator.distanceBetween(p.latitude, p.longitude, prev.latitude, prev.longitude);
-      final thr = ((p.accuracy.isFinite ? p.accuracy : 50.0) + (prev.accuracy.isFinite ? prev.accuracy : 50.0)) * 0.5 *
+      final dist =
+          Geolocator.distanceBetween(p.latitude, p.longitude, prev.latitude, prev.longitude);
+      final thr = ((p.accuracy.isFinite ? p.accuracy : 50.0) +
+              (prev.accuracy.isFinite ? prev.accuracy : 50.0)) *
+          0.5 *
           policy.jitterRejectMultiplier;
       if (dist <= thr) {
         filtered.add(p);
@@ -306,7 +319,8 @@ class ReliableLocationAcquirer {
 // -----------------------------
 
 class LocationAccessGuard {
-  LocationAccessGuard({LocationPolicy? policy}) : policy = policy ?? LocationPolicy.docReadingDefault();
+  LocationAccessGuard({LocationPolicy? policy})
+      : policy = policy ?? LocationPolicy.docReadingDefault();
   final LocationPolicy policy;
   final ReliableLocationAcquirer _acquirer = ReliableLocationAcquirer();
 
@@ -343,7 +357,8 @@ class ReadingGeofenceGuard {
   ReadingGeofenceGuard({required this.allowed, LocationPolicy? policy, this.onTick})
       : policy = policy ?? LocationPolicy.docReadingDefault();
 
-  Future<void> start({required void Function(Position current, double distanceMeters) onExit}) async {
+  Future<void> start(
+      {required void Function(Position current, double distanceMeters) onExit}) async {
     // 권한/서비스 확인 (예외 throw)
     final acquirer = ReliableLocationAcquirer(policy: policy);
     await acquirer._ensureServiceAndPermission();
@@ -352,8 +367,10 @@ class ReadingGeofenceGuard {
     _sub = Geolocator.getPositionStream(locationSettings: settings).listen((p) {
       if (p == null) return;
       final e = _validator.evaluate(p, policy);
-      if (e.confidence == LocationConfidence.bad || e.confidence == LocationConfidence.spoofed) return; // 품질 낮음 무시
-      final dist = Geolocator.distanceBetween(p.latitude, p.longitude, allowed.latitude, allowed.longitude);
+      if (e.confidence == LocationConfidence.bad || e.confidence == LocationConfidence.spoofed)
+        return; // 품질 낮음 무시
+      final dist =
+          Geolocator.distanceBetween(p.latitude, p.longitude, allowed.latitude, allowed.longitude);
       onTick?.call(p, dist);
       if (dist > allowed.radiusMeters) {
         onExit(p, dist); // 즉시 종료 처리 (문서 뷰어 닫기 등)
@@ -375,7 +392,8 @@ class ReadingGeofenceGuard {
         distanceFilter: df.round(),
         intervalDuration: const Duration(seconds: 2),
       );
-    } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.best,
         distanceFilter: df.round(),
@@ -410,23 +428,27 @@ class LocationSessionMetrics {
   }
 
   void start() => _sw.start();
+
   void markFirstFix() => timeToFirstFix ??= _sw.elapsed;
+
   void onSample(Position p) {
     sampleCount += 1;
     if (p.accuracy.isFinite) accuracies.add(p.accuracy);
-    final ageMs = p.timestamp == null ? 999999 : DateTime.now().difference(p.timestamp!).inMilliseconds;
+    final ageMs =
+        p.timestamp == null ? 999999 : DateTime.now().difference(p.timestamp!).inMilliseconds;
     agesMs.add(ageMs);
   }
+
   void markAccepted() => timeToAccept ??= _sw.elapsed;
 
   Map<String, Object?> toMap() => {
-    'ttff_ms': timeToFirstFix?.inMilliseconds,
-    't_accept_ms': timeToAccept?.inMilliseconds,
-    'sample_count': sampleCount,
-    'acc_med_m': _median(accuracies),
-    'acc_p95_m': _percentile(accuracies, 95),
-    'age_med_ms': _medianInt(agesMs),
-  };
+        'ttff_ms': timeToFirstFix?.inMilliseconds,
+        't_accept_ms': timeToAccept?.inMilliseconds,
+        'sample_count': sampleCount,
+        'acc_med_m': _median(accuracies),
+        'acc_p95_m': _percentile(accuracies, 95),
+        'age_med_ms': _medianInt(agesMs),
+      };
 
   double? _median(List<double> v) {
     if (v.isEmpty) return null;
