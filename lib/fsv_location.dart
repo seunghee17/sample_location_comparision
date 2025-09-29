@@ -17,9 +17,9 @@ class SampleHomePage extends StatefulWidget {
 
 class _SampleHomePageState extends State<SampleHomePage> {
   // 허용 구역 기본값(예: 서울시청)
-  final _latCtrl = TextEditingController(text: '37.5665');
-  final _lngCtrl = TextEditingController(text: '126.9780');
-  final _radCtrl = TextEditingController(text: '120');
+  final _latCtrl = TextEditingController(text: '37.579569760813015');
+  final _lngCtrl = TextEditingController(text: '126.8908091061977');
+  final _radCtrl = TextEditingController(text: '600');
 
   final _log = <String>[];
   EvaluatedPosition? _lastEval;
