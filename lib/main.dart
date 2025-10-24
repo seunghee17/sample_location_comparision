@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sample_location_comparision/sample_location.dart';
 
 import 'fsv_location.dart';
 
@@ -33,7 +34,7 @@ class FSVLocationSampleApp extends StatelessWidget {
     return MaterialApp(
         title: 'FSV Location Sample',
         theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
-        home: const SampleHomePage()
+        home: const SampleLocationPage()
     );
   }
 }

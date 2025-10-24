@@ -32,8 +32,15 @@
 	<string>위치권한을 요청합니다!</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>위치 권한을 요청합니다</string>
+	<key>NSMotionUsageDescription</key>
+	<string>움직임 감지 권한을 요청합니다.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
