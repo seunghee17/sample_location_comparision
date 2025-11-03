@@ -64,13 +64,35 @@ class _SampleLocationPageState extends State<SampleLocationPage> {
             },
             icon: const Icon(Icons.gps_fixed), label: const Text('신뢰 위치 획득'),
           ),
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: Text('dododo'),
+          sampleWidget(),
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onSecondaryTapUp: (details) {
+              print('여기서 우클릭');
+            },
+            onTap: () {
+              print('여기는 일반 클릭');
+            },
+            child: Container(
+                color: Colors.transparent,
+                padding: EdgeInsets.all(6),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: sampleWidget(),
+                ),
+            ),
           )
         ],
       )
+    );
+  }
+
+  Widget sampleWidget() {
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: Text('dododo'),
     );
   }
   

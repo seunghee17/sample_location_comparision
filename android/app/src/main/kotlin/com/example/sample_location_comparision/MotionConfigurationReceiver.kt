@@ -3,7 +3,9 @@ package com.example.sample_location_comparision
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionResult
 import com.google.android.gms.location.DetectedActivity
@@ -12,6 +14,7 @@ class MotionConfigurationReceiver: BroadcastReceiver() {
     //companion object {
     //        val transitionRecognitionLiveData = MutableLiveData<String>()
     //    }
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onReceive(context: Context?, intent: Intent?) {
         if(intent == null) return
         val result = ActivityTransitionResult.extractResult(intent) ?: return
