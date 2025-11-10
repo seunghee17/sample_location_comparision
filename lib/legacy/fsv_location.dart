@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:sample_location_comparision/section_widget.dart';
+import 'package:sample_location_comparision/legacy/section_widget.dart';
 
 import 'location_guard.dart';
 
