@@ -36,7 +36,7 @@ class WeightedAverager {
       speed: last.speed,
       speedAccuracy: last.speedAccuracy,
       altitudeAccuracy: last.altitudeAccuracy,
-      headingAccuracy: null, /// TODO 무슨값을 넣어야할까
+      headingAccuracy: last.headingAccuracy,
     );
   }
 }
